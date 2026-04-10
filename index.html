@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Software Readiness Checker Pro</title>
+    
+    <!-- Libraries for PDF and Confetti -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .action-btn.secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .action-btn.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .folder-selector {
+            text-align: center;
+            padding: 40px;
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+        
+        .folder-selector:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .folder-selector button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .folder-selector button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .folder-selector button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .folder-path {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .score-card {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .score {
+            font-size: 5em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .score.good { color: #10b981; }
+        .score.medium { color: #f59e0b; }
+        .score.poor { color: #ef4444; }
+        
+        .grade {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
+        .weight-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        
+        .checks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .check-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #ddd;
+        }
+        
+        .check-card.pass { border-left-color: #10b981; }
+        .check-card.fail { border-left-color: #ef4444; }
+        
+        .check-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .check-name {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .check-score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .check-max {
+            font-size: 0.8em;
+            color: #999;
+        }
+        
+        .check-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .check-status {
+            font-size: 1.2em;
+        }
+        
+        .check-status.pass { color: #10b981; }
+        .check-status.fail { color: #ef4444; }
+        
+        .check-rationale {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+            font-style: italic;
+        }
+        
+        /* Fix Checklist Section (Single) */
+        .fix-checklist-section {
+            background: #e8f4ff;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .fix-checklist-section h3 {
+            margin-bottom: 20px;
+            color: #1976d2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5em;
+        }
+        
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        .priority-badge.high { background: #ef4444; }
+        .priority-badge.medium { background: #f59e0b; }
+        .priority-badge.low { background: #10b981; }
+        
+        .fix-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 6px solid;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .fix-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .fix-item.high { border-left-color: #ef4444; }
+        .fix-item.medium { border-left-color: #f59e0b; }
+        .fix-item.low { border-left-color: #10b981; }
+        
+        .fix-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .fix-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            flex-grow: 1;
+        }
+        
+        .fix-impact {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .fix-description {
+            color: #444;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .fix-example {
+            background: #2d2d2d;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        
+        /* History Section */
+        .history-section {
+            background: #fff3e0;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border-left: 5px solid #ff9800;
+        }
+        
+        .history-section h3 {
+            margin-bottom: 20px;
+            color: #f57c00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .history-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-repo {
+            font-weight: bold;
+        }
+        
+        .history-score {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+        
+        .history-score.good { background: #10b98120; color: #10b981; }
+        .history-score.medium { background: #f59e0b20; color: #f59e0b; }
+        .history-score.poor { background: #ef444420; color: #ef4444; }
+        
+        .history-date {
+            color: #666;
+            font-size: 0.9em;
+            margin-left: 15px;
+        }
+        
+        .clear-history {
+            margin-top: 15px;
+            text-align: right;
+        }
+        
+        .json-output {
+            background: #2d2d2d;
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .json-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .browser-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8em; }
+            .main-content { padding: 20px; }
+            .score { font-size: 3em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Research Software Readiness Checker Pro</h1>
+            <p>Complete compliance with all project requirements</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="browser-warning" id="browserWarning">
+                ⚠️ Your browser doesn't support folder selection. Please use Chrome, Edge, or Brave for best experience.
+            </div>
+            
+            <div class="folder-selector">
+                <button id="selectFolderBtn">📁 Select Folder to Analyze</button>
+                <div class="folder-path" id="folderPath"></div>
+            </div>
+            
+            <div class="action-buttons" id="actionButtons" style="display: none;">
+                <button class="action-btn" id="exportPdfBtn">📄 Export PDF Report</button>
+                <button class="action-btn" id="exportJsonBtn">📋 Download JSON</button>
+                <button class="action-btn secondary" id="exportHtmlBtn">📄 Download HTML Report</button>
+                <button class="action-btn secondary" id="showHistoryBtn">📋 View History</button>
+                <button class="action-btn warning" id="showJsonBtn">🔍 View Raw JSON</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing repository... This may take a moment.</p>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="score-card">
+                    <h2>Readiness Score</h2>
+                    <div class="score" id="score">0</div>
+                    <div class="grade" id="grade">-</div>
+                    <div class="weight-info" id="weightInfo">
+                        <strong>Scoring Weights:</strong> README (20), License (15), Tests (25), CI/CD (15), Versioning (10), Citation (15)
+                    </div>
+                </div>
+                
+                <div class="checks-grid" id="checksGrid"></div>
+                
+                <!-- SINGLE FIX CHECKLIST SECTION (Prioritized by Impact) -->
+                <div class="fix-checklist-section" id="fixChecklistSection">
+                    <h3>📋 Fix Checklist Prioritized by Impact</h3>
+                    <div id="fixItemsList"></div>
+                </div>
+            </div>
+            
+            <!-- History Section -->
+            <div class="history-section" id="historySection" style="display: none;">
+                <h3>📋 Scan History</h3>
+                <div class="history-list" id="historyList"></div>
+                <div class="clear-history">
+                    <button class="action-btn warning" id="clearHistoryBtn">🗑️ Clear All History</button>
+                </div>
+            </div>
+            
+            <!-- JSON Output -->
+            <div class="json-output" id="jsonOutput">
+                <div class="json-header">
+                    <h3>📋 JSON Report</h3>
+                    <button class="action-btn" id="copyJsonBtn">📋 Copy JSON</button>
+                </div>
+                <pre id="jsonContent"></pre>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+    
+    <script>
+        (function() {
+            // Check browser support
+            if (!window.showDirectoryPicker) {
+                document.getElementById('browserWarning').style.display = 'block';
+                document.getElementById('selectFolderBtn').disabled = true;
+            }
+            
+            let currentResults = null;
+            let currentRepoName = '';
+            let currentJsonReport = null;
+            
+            // Initialize history from localStorage
+            let scanHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+            
+            // Display history if available
+            displayHistory();
+            
+            // Scoring weights
+            const SCORING_WEIGHTS = {
+                readme: { max: 20, rationale: 'Documentation is essential for users to understand and use your software' },
+                license: { max: 15, rationale: 'License determines legal usability and redistribution rights' },
+                tests: { max: 25, rationale: 'Tests verify correctness and prevent regressions' },
+                ci: { max: 15, rationale: 'CI/CD ensures automated testing and quality assurance' },
+                versioning: { max: 10, rationale: 'Versioning helps users track changes and cite specific releases' },
+                citation: { max: 15, rationale: 'Citation information enables proper academic attribution' }
+            };
+            
+            document.getElementById('selectFolderBtn').addEventListener('click', async () => {
+                try {
+                    // Show loading
+                    document.getElementById('loading').style.display = 'block';
+                    document.getElementById('results').style.display = 'none';
+                    document.getElementById('errorMessage').style.display = 'none';
+                    document.getElementById('actionButtons').style.display = 'none';
+                    document.getElementById('jsonOutput').style.display = 'none';
+                    document.getElementById('folderPath').textContent = '';
+                    
+                    // Select folder
+                    const dirHandle = await window.showDirectoryPicker();
+                    currentRepoName = dirHandle.name;
+                    document.getElementById('folderPath').textContent = `Selected: ${currentRepoName}`;
+                    
+                    // Analyze folder
+                    const results = await analyzeFolder(dirHandle);
+                    currentResults = results;
+                    
+                    // Generate JSON report
+                    currentJsonReport = generateJsonReport(results, currentRepoName);
+                    
+                    // Display results
+                    displayResults(results);
+                    
+                    // Save to history
+                    saveToHistory(currentRepoName, results);
+                    
+                    // Show action buttons
+                    document.getElementById('actionButtons').style.display = 'flex';
+                    
+                    // Trigger confetti for high scores (80+)
+                    if (results.totalScore >= 80) {
+                        triggerConfetti();
+                    }
+                    
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        showError('Error analyzing folder: ' + error.message);
+                    }
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            });
+            
+            async function analyzeFolder(dirHandle) {
+                const results = {
+                    readme: { passed: false, score: 0, details: 'Not found', maxScore: SCORING_WEIGHTS.readme.max },
+                    license: { passed: false, score: 0, details: 'Not found', maxScore: SCORING_WEIGHTS.license.max },
+                    tests: { passed: false, score: 0, details: 'Not found', maxScore: SCORING_WEIGHTS.tests.max },
+                    ci: { passed: false, score: 0, details: 'Not found', maxScore: SCORING_WEIGHTS.ci.max },
+                    versioning: { passed: false, score: 0, details: 'Not found', maxScore: SCORING_WEIGHTS.versioning.max },
+                    citation: { passed: false, score: 0, details: 'Not found', maxScore: SCORING_WEIGHTS.citation.max }
+                };
+                
+                // Track found items for better reporting
+                let foundReadme = false;
+                
+                // Check all files in the folder
+                for await (const entry of dirHandle.values()) {
+                    const name = entry.name.toLowerCase();
+                    
+                    // Check README
+                    if (name === 'readme.md' || name === 'readme.txt' || name === 'readme') {
+                        foundReadme = true;
+                        const file = await entry.getFile();
+                        const content = await file.text();
+                        const contentLower = content.toLowerCase();
+                        
+                        const hasInstall = contentLower.includes('install') || contentLower.includes('setup') || contentLower.includes('pip install');
+                        const hasRun = contentLower.includes('run') || contentLower.includes('usage') || contentLower.includes('example') || contentLower.includes('execute');
+                        
+                        if (hasInstall && hasRun) {
+                            results.readme = { 
+                                passed: true, 
+                                score: 20, 
+                                details: 'README has both installation and run instructions',
+                                maxScore: 20,
+                                rationale: 'Complete documentation with both setup and usage examples'
+                            };
+                        } else if (hasInstall || hasRun) {
+                            results.readme = { 
+                                passed: true, 
+                                score: 10, 
+                                details: hasInstall ? 'Has installation instructions but missing run examples' : 'Has run examples but missing installation instructions',
+                                maxScore: 20,
+                                rationale: 'Partial documentation - missing either setup or usage instructions'
+                            };
+                        } else {
+                            results.readme = { 
+                                passed: true, 
+                                score: 5, 
+                                details: 'README exists but lacks installation and run instructions',
+                                maxScore: 20,
+                                rationale: 'Minimal documentation without essential setup/usage information'
+                            };
+                        }
+                    }
+                    
+                    // Check License
+                    if (name === 'license' || name === 'license.txt' || name === 'license.md' || name === 'copying' || name === 'mit-license') {
+                        results.license = { 
+                            passed: true, 
+                            score: 15, 
+                            details: 'License file found',
+                            maxScore: 15,
+                            rationale: 'License present - software can be legally used and shared'
+                        };
+                    }
+                    
+                    // Check Tests folder
+                    if (name === 'test' || name === 'tests' || name === 'testing' || name === 'spec') {
+                        // Check for test files
+                        let hasTestFiles = false;
+                        try {
+                            for await (const testEntry of entry.values()) {
+                                if (testEntry.name.includes('test') || testEntry.name.includes('spec')) {
+                                    hasTestFiles = true;
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            // Ignore errors
+                        }
+                        
+                        let score = hasTestFiles ? 25 : 15;
+                        let details = hasTestFiles ? `Tests found in '${entry.name}' folder with test files` : `Tests folder found but no executable test files detected`;
+                        let rationale = hasTestFiles ? 'Tests present - code functionality is verified' : 'Test structure present but may need proper test files';
+                        
+                        results.tests = { 
+                            passed: true, 
+                            score: score, 
+                            details: details,
+                            maxScore: 25,
+                            rationale: rationale
+                        };
+                    }
+                    
+                    // Check CI/CD
+                    if (name === '.github' || name === '.gitlab-ci.yml' || name === '.travis.yml' || name === '.circleci' || name === 'jenkinsfile') {
+                        results.ci = { 
+                            passed: true, 
+                            score: 15, 
+                            details: `CI/CD configuration found: ${entry.name}`,
+                            maxScore: 15,
+                            rationale: 'CI/CD present - automated testing and quality checks enabled'
+                        };
+                    }
+                    
+                    // Check Versioning
+                    if (name === 'version' || name === 'version.txt' || name === 'pyproject.toml' || name === 'setup.py' || name === 'package.json' || name === 'cargo.toml') {
+                        results.versioning = { 
+                            passed: true, 
+                            score: 10, 
+                            details: `Version information found in: ${entry.name}`,
+                            maxScore: 10,
+                            rationale: 'Version tracking present - releases can be identified and cited'
+                        };
+                    }
+                    
+                    // Check Citation
+                    if (name === 'citation.cff' || name === 'citation.md' || name === 'citation.txt' || name === 'cite.md' || name === 'cite') {
+                        results.citation = { 
+                            passed: true, 
+                            score: 15, 
+                            details: `Citation file found: ${entry.name}`,
+                            maxScore: 15,
+                            rationale: 'Citation information present - proper academic attribution possible'
+                        };
+                    }
+                }
+                
+                // Check README for citation if no citation file found
+                if (!results.citation.passed && foundReadme) {
+                    const readmeEntry = await dirHandle.getFileHandle('README.md').catch(() => null);
+                    if (readmeEntry) {
+                        const file = await readmeEntry.getFile();
+                        const content = await file.text();
+                        if (content.toLowerCase().includes('citation') || content.toLowerCase().includes('cite') || content.toLowerCase().includes('how to cite')) {
+                            results.citation = { 
+                                passed: true, 
+                                score: 10, 
+                                details: 'Citation information found in README',
+                                maxScore: 15,
+                                rationale: 'Citation info in README - consider creating dedicated CITATION.cff'
+                            };
+                        }
+                    }
+                }
+                
+                // Check for git tags as versioning (if .git exists)
+                if (!results.versioning.passed) {
+                    const gitDir = await dirHandle.getDirectoryHandle('.git', { create: false }).catch(() => null);
+                    if (gitDir) {
+                        results.versioning = { 
+                            passed: true, 
+                            score: 10, 
+                            details: 'Git repository found (versioning via tags)',
+                            maxScore: 10,
+                            rationale: 'Git repository present - version tags can be used'
+                        };
+                    }
+                }
+                
+                // Calculate total score
+                results.totalScore = Object.values(results).reduce((sum, item) => sum + (item.score || 0), 0);
+                results.maxPossibleScore = 100;
+                results.scoringWeights = SCORING_WEIGHTS;
+                
+                return results;
+            }
+            
+            function generateRecommendationsList(results) {
+                const recommendations = [];
+                
+                // HIGH PRIORITY (missing essential items)
+                if (!results.tests.passed) {
+                    recommendations.push({
+                        priority: 'HIGH',
+                        title: 'Add tests to verify your code works correctly',
+                        description: 'Tests are essential to ensure your code behaves as expected and to catch regressions when making changes.',
+                        impact: 'Tests ensure reliability and prevent regressions',
+                        example: 'Create a tests/ folder and add test_*.py files:\n\ndef test_function():\n    result = my_function()\n    assert result == expected_value'
+                    });
+                }
+                
+                if (!results.license.passed) {
+                    recommendations.push({
+                        priority: 'HIGH',
+                        title: 'Add a LICENSE file',
+                        description: 'Without a license, others cannot legally use, modify, or distribute your code.',
+                        impact: 'Enables legal use and sharing of your code',
+                        example: 'Create a LICENSE file with MIT License:\n\nMIT License\n\nCopyright (c) 2024\n\nPermission is hereby granted...'
+                    });
+                }
+                
+                if (!results.readme.passed) {
+                    recommendations.push({
+                        priority: 'HIGH',
+                        title: 'Add README.md with documentation',
+                        description: 'README is the first thing users see and helps them understand your project.',
+                        impact: 'Essential for users to understand your software',
+                        example: '# Project Name\n\n## Installation\npip install -r requirements.txt\n\n## Usage\npython main.py\n\n## License\nMIT'
+                    });
+                } else if (results.readme.score < 20) {
+                    recommendations.push({
+                        priority: 'MEDIUM',
+                        title: 'Improve README with both installation and usage examples',
+                        description: 'Your README exists but lacks complete setup or usage instructions.',
+                        impact: 'Better documentation increases usability',
+                        example: 'Add ## Installation and ## Usage sections with concrete examples:\n\n## Installation\npip install -r requirements.txt\n\n## Usage\nfrom mypackage import function\nfunction("input")'
+                    });
+                }
+                
+                if (!results.ci.passed) {
+                    recommendations.push({
+                        priority: 'MEDIUM',
+                        title: 'Add CI/CD configuration',
+                        description: 'Continuous Integration automatically runs tests on every change, ensuring quality.',
+                        impact: 'Automated testing ensures quality on every change',
+                        example: 'Create .github/workflows/ci.yml:\n\nname: CI\non: [push]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v2\n      - run: pip install pytest\n      - run: pytest'
+                    });
+                }
+                
+                if (!results.versioning.passed) {
+                    recommendations.push({
+                        priority: 'MEDIUM',
+                        title: 'Add version information',
+                        description: 'Versioning helps users track which release they are using and cite specific versions.',
+                        impact: 'Versioning helps users track and cite specific releases',
+                        example: 'Create a VERSION file:\n\nv1.0.0\n\nOr use git tags:\ngit tag v1.0.0\ngit push --tags'
+                    });
+                }
+                
+                if (!results.citation.passed) {
+                    recommendations.push({
+                        priority: 'MEDIUM',
+                        title: 'Add citation information',
+                        description: 'Citation information enables others to properly cite your work in academic papers.',
+                        impact: 'Proper citation enables academic attribution',
+                        example: 'Create CITATION.cff:\n\ncff-version: 1.2.0\ntitle: "My Research Software"\nauthors:\n  - name: "Your Name"\n    affiliation: "Your Institution"\nversion: 1.0.0\ndate-released: 2024-01-01'
+                    });
+                } else if (results.citation.score < 15) {
+                    recommendations.push({
+                        priority: 'LOW',
+                        title: 'Create dedicated CITATION.cff file',
+                        description: 'While citation info is in README, a dedicated CITATION.cff file is more standardized.',
+                        impact: 'Standardized citation format for better discoverability',
+                        example: 'Create CITATION.cff file (see example above)'
+                    });
+                }
+                
+                return recommendations;
+            }
+            
+            function generateJsonReport(results, repoName) {
+                return {
+                    repository: repoName,
+                    scanDate: new Date().toISOString(),
+                    totalScore: results.totalScore,
+                    maxScore: 100,
+                    scoringWeights: {
+                        readme: 20,
+                        license: 15,
+                        tests: 25,
+                        ci: 15,
+                        versioning: 10,
+                        citation: 15
+                    },
+                    checks: {
+                        readme: {
+                            status: results.readme.passed ? 'PASS' : 'FAIL',
+                            score: results.readme.score,
+                            maxScore: 20,
+                            details: results.readme.details,
+                            rationale: results.readme.rationale || SCORING_WEIGHTS.readme.rationale
+                        },
+                        license: {
+                            status: results.license.passed ? 'PASS' : 'FAIL',
+                            score: results.license.score,
+                            maxScore: 15,
+                            details: results.license.details,
+                            rationale: results.license.rationale || SCORING_WEIGHTS.license.rationale
+                        },
+                        tests: {
+                            status: results.tests.passed ? 'PASS' : 'FAIL',
+                            score: results.tests.score,
+                            maxScore: 25,
+                            details: results.tests.details,
+                            rationale: results.tests.rationale || SCORING_WEIGHTS.tests.rationale
+                        },
+                        ci: {
+                            status: results.ci.passed ? 'PASS' : 'FAIL',
+                            score: results.ci.score,
+                            maxScore: 15,
+                            details: results.ci.details,
+                            rationale: results.ci.rationale || SCORING_WEIGHTS.ci.rationale
+                        },
+                        versioning: {
+                            status: results.versioning.passed ? 'PASS' : 'FAIL',
+                            score: results.versioning.score,
+                            maxScore: 10,
+                            details: results.versioning.details,
+                            rationale: results.versioning.rationale || SCORING_WEIGHTS.versioning.rationale
+                        },
+                        citation: {
+                            status: results.citation.passed ? 'PASS' : 'FAIL',
+                            score: results.citation.score,
+                            maxScore: 15,
+                            details: results.citation.details,
+                            rationale: results.citation.rationale || SCORING_WEIGHTS.citation.rationale
+                        }
+                    },
+                    recommendations: generateRecommendationsList(results),
+                    summary: {
+                        grade: results.totalScore >= 70 ? 'GOOD' : (results.totalScore >= 40 ? 'MEDIUM' : 'POOR'),
+                        passedChecks: Object.values(results).filter(r => r.passed && r !== results.totalScore).length,
+                        totalChecks: 6
+                    }
+                };
+            }
+            
+            function displayResults(results) {
+                document.getElementById('results').style.display = 'block';
+                
+                // Display score
+                const scoreEl = document.getElementById('score');
+                const gradeEl = document.getElementById('grade');
+                
+                scoreEl.textContent = results.totalScore;
+                scoreEl.className = 'score';
+                
+                if (results.totalScore >= 70) {
+                    scoreEl.classList.add('good');
+                    gradeEl.textContent = 'GOOD - Research Ready! 🎉';
+                    gradeEl.style.color = '#10b981';
+                } else if (results.totalScore >= 40) {
+                    scoreEl.classList.add('medium');
+                    gradeEl.textContent = 'MEDIUM - Needs Improvement ⚠️';
+                    gradeEl.style.color = '#f59e0b';
+                } else {
+                    scoreEl.classList.add('poor');
+                    gradeEl.textContent = 'POOR - Not Research Ready 🔴';
+                    gradeEl.style.color = '#ef4444';
+                }
+                
+                // Display checks grid with rationales
+                const checksGrid = document.getElementById('checksGrid');
+                checksGrid.innerHTML = '';
+                
+                const checkNames = {
+                    readme: 'README',
+                    license: 'License',
+                    tests: 'Tests',
+                    ci: 'CI/CD',
+                    versioning: 'Versioning',
+                    citation: 'Citation'
+                };
+                
+                for (const [key, name] of Object.entries(checkNames)) {
+                    const check = results[key];
+                    const card = document.createElement('div');
+                    card.className = `check-card ${check.passed ? 'pass' : 'fail'}`;
+                    
+                    const rationale = check.rationale || SCORING_WEIGHTS[key].rationale;
+                    
+                    card.innerHTML = `
+                        <div class="check-header">
+                            <span class="check-name">${name}</span>
+                            <span class="check-score">${check.score}<span class="check-max">/${check.maxScore}</span></span>
+                        </div>
+                        <div class="check-details">${check.details}</div>
+                        <div class="check-status ${check.passed ? 'pass' : 'fail'}">
+                            ${check.passed ? '✅ PASS' : '❌ FAIL'}
+                        </div>
+                        <div class="check-rationale">
+                            <strong>Why it matters:</strong> ${rationale}
+                        </div>
+                    `;
+                    
+                    checksGrid.appendChild(card);
+                }
+                
+                // Display SINGLE fix checklist (prioritized recommendations)
+                const recommendations = generateRecommendationsList(results);
+                const fixItemsList = document.getElementById('fixItemsList');
+                fixItemsList.innerHTML = '';
+                
+                // Sort by priority (HIGH > MEDIUM > LOW)
+                const priorityOrder = { 'HIGH': 0, 'MEDIUM': 1, 'LOW': 2 };
+                const sortedRecs = [...recommendations].sort((a, b) => 
+                    priorityOrder[a.priority] - priorityOrder[b.priority]
+                );
+                
+                if (sortedRecs.length > 0) {
+                    sortedRecs.forEach(rec => {
+                        const fixItem = document.createElement('div');
+                        fixItem.className = `fix-item ${rec.priority.toLowerCase()}`;
+                        
+                        fixItem.innerHTML = `
+                            <div class="fix-header">
+                                <span class="priority-badge ${rec.priority.toLowerCase()}">${rec.priority} PRIORITY</span>
+                                <span class="fix-impact">🎯 ${rec.impact}</span>
+                            </div>
+                            <div class="fix-title">${rec.title}</div>
+                            <div class="fix-description">${rec.description}</div>
+                            <div class="fix-example">${rec.example.replace(/\n/g, '<br>')}</div>
+                        `;
+                        
+                        fixItemsList.appendChild(fixItem);
+                    });
+                } else {
+                    fixItemsList.innerHTML = '<div style="text-align: center; padding: 40px; background: white; border-radius: 10px;">✅ All checks passed! No fixes needed. Your repository is research-ready! 🎉</div>';
+                }
+            }
+            
+            function triggerConfetti() {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                
+                // Second burst
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 50,
+                        spread: 100,
+                        origin: { y: 0.6, x: 0.2 }
+                    });
+                }, 250);
+                
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 50,
+                        spread: 100,
+                        origin: { y: 0.6, x: 0.8 }
+                    });
+                }, 500);
+            }
+            
+            function saveToHistory(repoName, results) {
+                const historyItem = {
+                    repo: repoName,
+                    score: results.totalScore,
+                    date: new Date().toLocaleString(),
+                    timestamp: new Date().getTime(),
+                    details: { ...results }
+                };
+                
+                scanHistory.unshift(historyItem);
+                
+                // Keep only last 20 scans
+                if (scanHistory.length > 20) {
+                    scanHistory = scanHistory.slice(0, 20);
+                }
+                
+                localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
+                displayHistory();
+            }
+            
+            function displayHistory() {
+                const historyList = document.getElementById('historyList');
+                if (!historyList) return;
+                
+                if (scanHistory.length > 0) {
+                    document.getElementById('historySection').style.display = 'block';
+                    historyList.innerHTML = '';
+                    
+                    scanHistory.forEach((item, index) => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'history-item';
+                        
+                        let scoreClass = 'poor';
+                        if (item.score >= 70) scoreClass = 'good';
+                        else if (item.score >= 40) scoreClass = 'medium';
+                        
+                        historyItem.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+                                <span class="history-repo">📁 ${item.repo}</span>
+                                <span class="history-date">${item.date}</span>
+                            </div>
+                            <span class="history-score ${scoreClass}">${item.score}/100</span>
+                        `;
+                        
+                        historyItem.addEventListener('click', () => {
+                            if (item.details) {
+                                displayResults(item.details);
+                                document.getElementById('folderPath').textContent = `History: ${item.repo} (${item.date})`;
+                                document.getElementById('actionButtons').style.display = 'flex';
+                                currentResults = item.details;
+                                currentRepoName = item.repo;
+                            }
+                        });
+                        
+                        historyList.appendChild(historyItem);
+                    });
+                } else {
+                    document.getElementById('historySection').style.display = 'none';
+                }
+            }
+            
+            // PDF Export Function
+            async function exportToPDF() {
+                if (!currentResults) {
+                    alert('Please scan a folder first!');
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Title
+                doc.setFontSize(22);
+                doc.setTextColor(102, 126, 234);
+                doc.text('Research Software Readiness Report', 20, 20);
+                
+                // Repository info
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Repository: ${currentRepoName || 'Unknown'}`, 20, 35);
+                doc.text(`Date: ${new Date().toLocaleString()}`, 20, 42);
+                
+                // Score
+                doc.setFontSize(16);
+                doc.text(`Total Score: ${currentResults.totalScore}/100`, 20, 55);
+                
+                // Grade
+                let grade = '';
+                if (currentResults.totalScore >= 70) grade = 'GOOD - Research Ready';
+                else if (currentResults.totalScore >= 40) grade = 'MEDIUM - Needs Improvement';
+                else grade = 'POOR - Not Research Ready';
+                doc.text(`Status: ${grade}`, 20, 65);
+                
+                // Checks table
+                doc.setFontSize(14);
+                doc.text('Check Results:', 20, 80);
+                
+                let y = 90;
+                const checks = [
+                    ['Check', 'Status', 'Score'],
+                    ['README', currentResults.readme.passed ? 'PASS' : 'FAIL', `${currentResults.readme.score}/20`],
+                    ['License', currentResults.license.passed ? 'PASS' : 'FAIL', `${currentResults.license.score}/15`],
+                    ['Tests', currentResults.tests.passed ? 'PASS' : 'FAIL', `${currentResults.tests.score}/25`],
+                    ['CI/CD', currentResults.ci.passed ? 'PASS' : 'FAIL', `${currentResults.ci.score}/15`],
+                    ['Versioning', currentResults.versioning.passed ? 'PASS' : 'FAIL', `${currentResults.versioning.score}/10`],
+                    ['Citation', currentResults.citation.passed ? 'PASS' : 'FAIL', `${currentResults.citation.score}/15`]
+                ];
+                
+                checks.forEach(row => {
+                    doc.setFontSize(10);
+                    doc.text(row[0], 20, y);
+                    doc.text(row[1], 80, y);
+                    doc.text(row[2], 140, y);
+                    y += 7;
+                });
+                
+                // Recommendations
+                y += 10;
+                doc.setFontSize(14);
+                doc.text('Top Recommendations:', 20, y);
+                y += 10;
+                doc.setFontSize(10);
+                
+                const recommendations = generateRecommendationsList(currentResults);
+                recommendations.slice(0, 5).forEach(rec => {
+                    if (y > 250) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(`• [${rec.priority}] ${rec.title}`, 25, y);
+                    y += 7;
+                });
+                
+                // Save PDF
+                doc.save(`readiness-report-${currentRepoName || 'scan'}.pdf`);
+            }
+            
+            // Export HTML Report (Human-readable)
+            function exportHtmlReport() {
+                if (!currentResults || !currentRepoName) {
+                    alert('Please scan a folder first!');
+                    return;
+                }
+                
+                const recommendations = generateRecommendationsList(currentResults);
+                
+                let recommendationsHtml = '';
+                if (recommendations.length > 0) {
+                    recommendations.forEach(rec => {
+                        recommendationsHtml += `
+                            <div style="margin-bottom: 20px; padding: 15px; border-left: 5px solid ${
+                                rec.priority === 'HIGH' ? '#ef4444' : rec.priority === 'MEDIUM' ? '#f59e0b' : '#10b981'
+                            }; background: #f9f9f9; border-radius: 5px;">
+                                <h3 style="margin-top: 0;">${rec.priority} PRIORITY: ${rec.title}</h3>
+                                <p><strong>Impact:</strong> ${rec.impact}</p>
+                                <p>${rec.description}</p>
+                                <pre style="background: #2d2d2d; color: #fff; padding: 10px; border-radius: 5px; overflow-x: auto;">${rec.example}</pre>
+                            </div>
+                        `;
+                    });
+                } else {
+                    recommendationsHtml = '<p>✅ All checks passed! No recommendations needed.</p>';
+                }
+                
+                const htmlContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Research Readiness Report - ${currentRepoName}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+                            .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+                            h1 { color: #667eea; }
+                            .score { font-size: 48px; font-weight: bold; margin: 20px 0; }
+                            .score.good { color: #10b981; }
+                            .score.medium { color: #f59e0b; }
+                            .score.poor { color: #ef4444; }
+                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                            th { background: #667eea; color: white; }
+                            .pass { color: #10b981; font-weight: bold; }
+                            .fail { color: #ef4444; font-weight: bold; }
+                            .recommendations { margin-top: 30px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>🔍 Research Software Readiness Report</h1>
+                            <p><strong>Repository:</strong> ${currentRepoName}</p>
+                            <p><strong>Scan Date:</strong> ${new Date().toLocaleString()}</p>
+                            
+                            <div class="score ${currentResults.totalScore >= 70 ? 'good' : currentResults.totalScore >= 40 ? 'medium' : 'poor'}">
+                                Total Score: ${currentResults.totalScore}/100
+                            </div>
+                            
+                            <h2>Check Results</h2>
+                            <table>
+                                <tr>
+                                    <th>Check</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th>Details</th>
+                                </tr>
+                                <tr>
+                                    <td>README</td>
+                                    <td class="${currentResults.readme.passed ? 'pass' : 'fail'}">${currentResults.readme.passed ? 'PASS' : 'FAIL'}</td>
+                                    <td>${currentResults.readme.score}/20</td>
+                                    <td>${currentResults.readme.details}</td>
+                                </tr>
+                                <tr>
+                                    <td>License</td>
+                                    <td class="${currentResults.license.passed ? 'pass' : 'fail'}">${currentResults.license.passed ? 'PASS' : 'FAIL'}</td>
+                                    <td>${currentResults.license.score}/15</td>
+                                    <td>${currentResults.license.details}</td>
+                                </tr>
+                                <tr>
+                                    <td>Tests</td>
+                                    <td class="${currentResults.tests.passed ? 'pass' : 'fail'}">${currentResults.tests.passed ? 'PASS' : 'FAIL'}</td>
+                                    <td>${currentResults.tests.score}/25</td>
+                                    <td>${currentResults.tests.details}</td>
+                                </tr>
+                                <tr>
+                                    <td>CI/CD</td>
+                                    <td class="${currentResults.ci.passed ? 'pass' : 'fail'}">${currentResults.ci.passed ? 'PASS' : 'FAIL'}</td>
+                                    <td>${currentResults.ci.score}/15</td>
+                                    <td>${currentResults.ci.details}</td>
+                                </tr>
+                                <tr>
+                                    <td>Versioning</td>
+                                    <td class="${currentResults.versioning.passed ? 'pass' : 'fail'}">${currentResults.versioning.passed ? 'PASS' : 'FAIL'}</td>
+                                    <td>${currentResults.versioning.score}/10</td>
+                                    <td>${currentResults.versioning.details}</td>
+                                </tr>
+                                <tr>
+                                    <td>Citation</td>
+                                    <td class="${currentResults.citation.passed ? 'pass' : 'fail'}">${currentResults.citation.passed ? 'PASS' : 'FAIL'}</td>
+                                    <td>${currentResults.citation.score}/15</td>
+                                    <td>${currentResults.citation.details}</td>
+                                </tr>
+                            </table>
+                            
+                            <h2>📋 Fix Checklist Prioritized by Impact</h2>
+                            <div class="recommendations">
+                                ${recommendationsHtml}
+                            </div>
+                            
+                            <p style="margin-top: 30px; color: #666; text-align: center;">Generated by Research Software Readiness Checker Pro</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentRepoName}-readiness-report.html`;
+                a.click();
+            }
+            
+            // Event Listeners
+            document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+            document.getElementById('exportHtmlBtn').addEventListener('click', exportHtmlReport);
+            
+            // Export JSON (Fixed - Now Downloads)
+            document.getElementById('exportJsonBtn').addEventListener('click', () => {
+                if (!currentJsonReport) {
+                    alert('Please scan a folder first!');
+                    return;
+                }
+                
+                const jsonString = JSON.stringify(currentJsonReport, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentRepoName || 'repository'}-readiness-report.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            // Show JSON
+            document.getElementById('showJsonBtn').addEventListener('click', () => {
+                const jsonOutput = document.getElementById('jsonOutput');
+                const jsonContent = document.getElementById('jsonContent');
+                
+                if (jsonOutput.style.display === 'none' || jsonOutput.style.display === '') {
+                    jsonContent.textContent = JSON.stringify(currentJsonReport, null, 2);
+                    jsonOutput.style.display = 'block';
+                } else {
+                    jsonOutput.style.display = 'none';
+                }
+            });
+            
+            // Copy JSON
+            document.getElementById('copyJsonBtn').addEventListener('click', () => {
+                navigator.clipboard.writeText(JSON.stringify(currentJsonReport, null, 2));
+                alert('JSON copied to clipboard!');
+            });
+            
+            // Show History
+            document.getElementById('showHistoryBtn').addEventListener('click', () => {
+                document.getElementById('historySection').style.display = 'block';
+            });
+            
+            // Clear History
+            document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+                if (confirm('Clear all scan history?')) {
+                    scanHistory = [];
+                    localStorage.removeItem('scanHistory');
+                    displayHistory();
+                }
+            });
+            
+            function showError(message) {
+                const errorEl = document.getElementById('errorMessage');
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+            }
+        })();
+    </script>
+</body>
+</html>
