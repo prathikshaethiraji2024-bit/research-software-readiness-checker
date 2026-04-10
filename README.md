@@ -12,9 +12,9 @@
 2. Click "Select Folder"
 3. View results
 
-## Author
+## Authors
 - Prathiksha Ethiraji (24MID0295)
--Darshana priya (24MID0211)
+- Darshana Priya R (24MID0211)
 
 ## Course
 Software Verification and Validation (CSI3014)
