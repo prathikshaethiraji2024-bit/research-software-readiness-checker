@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: Research Software Readiness Checker Pro
+message: If you use this software, please cite it using these metadata.
+type: software
+authors:
+  - name: Prathiksha Ethiraji
+    affiliation: VIT Vellore
+    orcid: 
+  - name: Darshana Priya R
+    affiliation: VIT Vellore
+    orcid: 
+version: 1.0.0
+date-released: 2026-04-11
+url: https://github.com/patrhikshaethiraji2024-bit/research-software-readiness-checker
+license: MIT
