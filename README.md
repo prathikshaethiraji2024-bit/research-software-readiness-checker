@@ -41,7 +41,7 @@ Click here: [Live Demo](https://patrhikshaethiraji2024-bit.github.io/research-so
 
 ## 🧪 Test the Tool
 
-Use the sample repositories in the **`SVV SAMPLES/`** folder:
+Clone this repository and use the sample repositories in the `sample_repos/` folder:
 
 | Repository | Expected Score |
 |------------|----------------|
@@ -81,12 +81,6 @@ Use the sample repositories in the **`SVV SAMPLES/`** folder:
 - Missing License, CI/CD, Version, Citation
 
 **sample_empty** (0/100) - Empty folder
-
-## 📸 Screenshots present as pdf in new folder
-
-| Good Repository (95/100) | Medium Repository (50/100) | Poor Repository (20/100) |
-|:------------------------:|:--------------------------:|:------------------------:|
-| ![Good](screenshots/good-repo.png) | ![Medium](screenshots/medium-repo.png) | ![Poor](screenshots/poor-repo.png) |
 
 ## 🛠️ Technologies Used
 
