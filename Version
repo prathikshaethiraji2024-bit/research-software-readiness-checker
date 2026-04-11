@@ -1,1 +1,11 @@
-v1.0.0
+### Research Software Readiness Checker Pro v1.0.0
+
+#### Features:
+- Automated analysis of 6 research-readiness criteria
+- Weighted scoring system (README:20, License:15, Tests:25, CI/CD:15, Versioning:10, Citation:15)
+- PDF, HTML, and JSON export
+- Persistent history tracking
+- Confetti animation for high scores
+
+#### How to use:
+Download index.html and open in Chrome/Edge/Brave
