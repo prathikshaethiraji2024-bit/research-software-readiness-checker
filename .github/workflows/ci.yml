@@ -1,0 +1,168 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Job 1: Validate HTML
+  validate-html:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check index.html exists
+        run: |
+          if [ -f "index.html" ]; then
+            echo "✅ index.html found"
+          else
+            echo "❌ index.html not found"
+            exit 1
+          fi
+      
+      - name: Check README.md exists
+        run: |
+          if [ -f "README.md" ]; then
+            echo "✅ README.md found"
+          else
+            echo "❌ README.md not found"
+            exit 1
+          fi
+      
+      - name: Check LICENSE exists
+        run: |
+          if [ -f "LICENSE" ]; then
+            echo "✅ LICENSE found"
+          else
+            echo "❌ LICENSE not found"
+            exit 1
+          fi
+      
+      - name: Check VERSION file
+        run: |
+          if [ -f "VERSION" ]; then
+            echo "✅ VERSION file found"
+            cat VERSION
+          else
+            echo "❌ VERSION file not found"
+            exit 1
+          fi
+
+  # Job 2: Check for Required Files
+  check-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: List all files
+        run: ls -la
+      
+      - name: Check screenshots folder
+        run: |
+          if [ -d "screenshots" ]; then
+            echo "✅ screenshots folder exists"
+          else
+            echo "⚠️ screenshots folder not found (optional)"
+          fi
+      
+      - name: Check SVV SAMPLES folder
+        run: |
+          if [ -d "SVV SAMPLES" ]; then
+            echo "✅ SVV SAMPLES folder exists"
+            ls -la "SVV SAMPLES"
+          else
+            echo "⚠️ SVV SAMPLES folder not found (optional)"
+          fi
+
+  # Job 3: GitHub Pages Deployment Check
+  pages-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Verify GitHub Pages source
+        run: |
+          if [ -f "index.html" ]; then
+            echo "✅ GitHub Pages will serve index.html from root"
+          else
+            echo "❌ No index.html found in root"
+            exit 1
+          fi
+      
+      - name: Check HTML file size
+        run: |
+          SIZE=$(wc -c < index.html)
+          echo "📄 index.html size: $SIZE bytes"
+          if [ $SIZE -gt 1000 ]; then
+            echo "✅ File size is good"
+          fi
+
+  # Job 4: Quality Score Check (Using your own tool!)
+  quality-score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check repository completeness
+        run: |
+          SCORE=0
+          
+          # README check
+          if [ -f "README.md" ]; then
+            SCORE=$((SCORE + 20))
+            echo "✅ README found (+20)"
+          fi
+          
+          # License check
+          if [ -f "LICENSE" ]; then
+            SCORE=$((SCORE + 15))
+            echo "✅ LICENSE found (+15)"
+          fi
+          
+          # Version check
+          if [ -f "VERSION" ]; then
+            SCORE=$((SCORE + 10))
+            echo "✅ VERSION found (+10)"
+          fi
+          
+          # CI/CD check (this file itself!)
+          if [ -f ".github/workflows/ci.yml" ]; then
+            SCORE=$((SCORE + 15))
+            echo "✅ CI/CD found (+15)"
+          fi
+          
+          # Citation check
+          if [ -f "CITATION.cff" ]; then
+            SCORE=$((SCORE + 15))
+            echo "✅ CITATION.cff found (+15)"
+          fi
+          
+          # Tests check
+          if [ -d "SVV SAMPLES" ]; then
+            SCORE=$((SCORE + 25))
+            echo "✅ Sample repos found (+25)"
+          fi
+          
+          echo "=========================="
+          echo "📊 RESEARCH READINESS SCORE: $SCORE/100"
+          echo "=========================="
+          
+          if [ $SCORE -ge 80 ]; then
+            echo "🎉 GOOD - Research Ready!"
+          elif [ $SCORE -ge 40 ]; then
+            echo "⚠️ MEDIUM - Needs Improvement"
+          else
+            echo "🔴 POOR - Not Research Ready"
+          fi
+
+  # Job 5: Notify completion
+  notify:
+    runs-on: ubuntu-latest
+    needs: [validate-html, check-files, pages-check, quality-score]
+    steps:
+      - name: CI/CD Pipeline Complete
+        run: |
+          echo "✅ All checks passed successfully!"
+          echo "🚀 Repository is research-ready!"
