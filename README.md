@@ -29,7 +29,7 @@
 5. View score, check results, and recommendations
 
 ### Option 2: Use GitHub Pages (Live Demo)
-Click here: [Live Demo](https://prathikshaethiraji2024-bit.github.io/research-software-readiness-checker/)
+Click here: [Live Demo](https://github.com/prathikshaethiraji2024-bit/research-software-readiness-checker/blob/main/index.html)
 
 ## 📊 Scoring System
 
