@@ -25,11 +25,10 @@
 1. Download `index.html` from this repository
 2. Double-click to open in **Chrome/Edge/Brave** (Firefox not supported)
 3. Click **"Select Folder to Analyze"**
-4. Choose any software repository folder
-5. View score, check results, and recommendations
+4. Paste any link of github or Choose any software repository folder
+6. View score, check results, and recommendations
 
-### Option 2: Use GitHub Pages (Live Demo)
-Click here: [Live Demo](https://github.com/prathikshaethiraji2024-bit/research-software-readiness-checker/blob/main/index.html)
+
 
 ## 📊 Scoring System
 
