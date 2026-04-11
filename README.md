@@ -29,7 +29,7 @@
 5. View score, check results, and recommendations
 
 ### Option 2: Use GitHub Pages (Live Demo)
-Click here: [Live Demo](https://patrhikshaethiraji2024-bit.github.io/research-software-readiness-checker/)
+Click here: [Live Demo](https://prathikshaethiraji2024-bit.github.io/research-software-readiness-checker/)
 
 ## 📊 Scoring System
 
@@ -41,7 +41,7 @@ Click here: [Live Demo](https://patrhikshaethiraji2024-bit.github.io/research-so
 
 ## 🧪 Test the Tool
 
-Clone this repository and use the sample repositories in the `sample_repos/` folder:
+Use the sample repositories in the **`SVV SAMPLES/`** folder:
 
 | Repository | Expected Score |
 |------------|----------------|
@@ -104,4 +104,37 @@ Clone this repository and use the sample repositories in the `sample_repos/` fol
 | Firefox | ❌ Not Supported | Lacks File System Access API |
 | Safari | ❌ Not Supported | Lacks File System Access API |
 
-## 📁 Repository Structure
+
+## 👩‍💻 Authors
+
+| Name | Register Number |
+|------|-----------------|
+| **Prathiksha Ethiraji** | 24MID0295 |
+| **Darshana Priya R** | 24MID0211 |
+
+## 📚 Course Information
+
+| Field | Details |
+|-------|---------|
+| **Course** | Software Verification and Validation |
+| **Course Code** | CSI3014 |
+| **Slot** | G1+TG1 |
+| **Guided By** | Dr. Naveenkumar J |
+| **Institution** | VIT Chennai |
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 📝 How to Cite
+
+If you use this tool in your research, please cite as:
+
+```bibtex
+@software{Ethiraji_Research_Software_Readiness_2026,
+  author = {Prathiksha Ethiraji and Darshana Priya R},
+  title = {Research Software Readiness Checker Pro},
+  year = {2026},
+  url = {https://github.com/prathikshaethiraji2024-bit/research-software-readiness-checker},
+  version = {1.0.0}
+}
