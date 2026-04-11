@@ -34,8 +34,8 @@
 
 | Score Range | Grade | Meaning |
 |-------------|-------|---------|
-| 70-100 | GOOD | Research Ready |
-| 40-69 | MEDIUM | Needs Improvement |
+| 75-100 | GOOD | Research Ready |
+| 40-74 | MEDIUM | Needs Improvement |
 | 0-39 | POOR | Not Research Ready |
 
 ## 🧪 Test the Tool
