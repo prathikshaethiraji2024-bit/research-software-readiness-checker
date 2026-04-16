@@ -119,7 +119,7 @@ Use the sample repositories in the **`SVV SAMPLES/`** folder:
 | **Course Code** | CSI3014 |
 | **Slot** | G1+TG1 |
 | **Guided By** | Dr. Naveenkumar J |
-| **Institution** | VIT Chennai |
+| **Institution** | VIT Vellore |
 
 ## 📄 License
 
