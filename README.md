@@ -104,7 +104,7 @@ Use the sample repositories in the **`SVV SAMPLES/`** folder:
 | Safari | ❌ Not Supported | Lacks File System Access API |
 
 
-## 👩‍💻 Authors
+## 👩‍💻 Author
 
 | Name | Register Number |
 |------|-----------------|
