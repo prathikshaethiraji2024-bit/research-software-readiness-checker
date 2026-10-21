@@ -109,7 +109,7 @@ Use the sample repositories in the **`SVV SAMPLES/`** folder:
 | Name | Register Number |
 |------|-----------------|
 | **Prathiksha Ethiraji** | 24MID0295 |
-| **Darshana Priya R** | 24MID0211 |
+
 
 ## 📚 Course Information
 
